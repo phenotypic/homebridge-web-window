@@ -1,4 +1,4 @@
-# homebridge-web-window _UNDER DEVELOPMENT_
+# homebridge-web-window
 
 [![npm](https://img.shields.io/npm/v/homebridge-web-window.svg)](https://www.npmjs.com/package/homebridge-web-window) [![npm](https://img.shields.io/npm/dt/homebridge-web-window.svg)](https://www.npmjs.com/package/homebridge-web-window)
 
@@ -41,9 +41,8 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
 | Key | Description | Default |
 | --- | --- | --- |
 | `pollInterval` | Time (in seconds) between device polls | `300` |
-| `listener` | Whether to start a listener to get real-time changes from the device | `false` |
 | `timeout` | Time (in milliseconds) until the accessory will be marked as _Not Responding_ if it is unreachable | `3000` |
-| `port` | Port for your HTTP listener (if enabled) | `2000` |
+| `port` | Port for your HTTP listener (only one listener per port) | `2000` |
 | `http_method` | HTTP method used to communicate with the device | `GET` |
 | `username` | Username if HTTP authentication is enabled | N/A |
 | `password` | Password if HTTP authentication is enabled | N/A |
@@ -96,4 +95,4 @@ Your API should be able to:
 | --- | --- |
 | `0` | Opening |
 | `1` | Closing |
-| `2` | Open/Closedd |
+| `2` | Open/Closed |

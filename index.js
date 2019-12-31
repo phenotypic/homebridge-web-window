@@ -132,15 +132,15 @@ WebWindow.prototype = {
   },
 
   setTargetPosition: function (value, callback) {
-    var url = this.apiroute + '/setState/' + value
-    this.log.debug('Setting state: %s', url)
+    var url = this.apiroute + '/setTargetPosition/' + value
+    this.log.debug('Setting targetPosition: %s', url)
 
     this._httpRequest(url, '', this.http_method, function (error, response, responseBody) {
       if (error) {
-        this.log.warn('Error setting state: %s', error.message)
+        this.log.warn('Error setting targetPosition: %s', error.message)
         callback(error)
       } else {
-        this.log('Set state to %s', value)
+        this.log('Set targetPosition to %s', value)
         callback()
       }
     }.bind(this))

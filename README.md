@@ -31,6 +31,12 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
 | `name` | Name to appear in the Home app | N/A |
 | `apiroute` | Root URL of your device | N/A |
 
+### Optional fields
+| Key | Description | Default |
+| --- | --- | --- |
+| `autoReset` | Whether obstruction detection should automatically change the state back to `0` after being triggered | `false` |
+| `autoResetDelay` | Time (in seconds) until the obstruction detection will automatically reset (if enabled) | `5` |
+
 ### Additional options
 | Key | Description | Default |
 | --- | --- | --- |
@@ -53,18 +59,42 @@ Your API should be able to:
 1. Return JSON information when it receives `/status`:
 ```
 {
-    "currentState": INT_VALUE
+    "positionState": INT_VALUE,
+    "currentPosition": INT_VALUE,
+    "targetPosition": INT_VALUE
 }
 ```
 
-2. Set the state when it receives:
+2. Open/close the garage when it receives:
 ```
-/setState/INT_VALUE
+/targetPosition/INT_VALUE_0_TO_100
 ```
 
-### Optional (if listener is enabled)
+3. Update `currentPosition` as it opens/closes by messaging the listen server:
+```
+/currentPosition/INT_VALUE_0_TO_100
+```
 
-1. Update `state` following a manual override by messaging the listen server:
+4. Update `positionState` as it opens/closes by messaging the listen server:
 ```
-/state/INT_VALUE
+/positionState/INT_VALUE_0_TO_2
 ```
+
+5. Update `targetPosition` following a manual override by messaging the listen server:
+```
+/targetPosition/INT_VALUE_0_TO_100
+```
+
+6. Update `obstructionDetected` when an obstruction is detected by messaging the listen server (should notify `0` after obstruction moves unless `autoReset` is enabled):
+```
+/obstructionDetected/INT_VALUE_0_TO_1
+```
+
+## PositionState Key
+
+| Number | Name |
+| --- | --- |
+| `0` | Open |
+| `1` | Closed |
+| `2` | Opening |
+| `3` | Closing |

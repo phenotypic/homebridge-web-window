@@ -94,7 +94,6 @@ Your API should be able to:
 
 | Number | Name |
 | --- | --- |
-| `0` | Open |
-| `1` | Closed |
-| `2` | Opening |
-| `3` | Closing |
+| `0` | Opening |
+| `1` | Closing |
+| `2` | Open/Closedd |

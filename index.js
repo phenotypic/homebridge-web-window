@@ -7,10 +7,10 @@ const http = require('http')
 module.exports = function (homebridge) {
   Service = homebridge.hap.Service
   Characteristic = homebridge.hap.Characteristic
-  homebridge.registerAccessory('homebridge-web-switch', 'WebSwitch', WebSwitch)
+  homebridge.registerAccessory('homebridge-web-window', 'WebWindow', WebWindow)
 }
 
-function WebSwitch (log, config) {
+function WebWindow (log, config) {
   this.log = log
 
   this.name = config.name
@@ -19,7 +19,7 @@ function WebSwitch (log, config) {
 
   this.listener = config.listener || false
   this.port = config.port || 2000
-  this.requestArray = ['state']
+  this.requestArray = ['currentPosition', 'targetPosition', 'positionState']
 
   this.manufacturer = config.manufacturer || packageJson.author.name
   this.serial = config.serial || this.apiroute
@@ -38,30 +38,28 @@ function WebSwitch (log, config) {
     }
   }
 
-  if (this.listener) {
-    this.server = http.createServer(function (request, response) {
-      var parts = request.url.split('/')
-      var partOne = parts[parts.length - 2]
-      var partTwo = parts[parts.length - 1]
-      if (parts.length === 3 && this.requestArray.includes(partOne)) {
-        this.log('Handling request: %s', request.url)
-        response.end('Handling request')
-        this._httpHandler(partOne, partTwo)
-      } else {
-        this.log.warn('Invalid request: %s', request.url)
-        response.end('Invalid request')
-      }
-    }.bind(this))
+  this.server = http.createServer(function (request, response) {
+    var parts = request.url.split('/')
+    var partOne = parts[parts.length - 2]
+    var partTwo = parts[parts.length - 1]
+    if (parts.length === 3 && this.requestArray.includes(partOne)) {
+      this.log('Handling request: %s', request.url)
+      response.end('Handling request')
+      this._httpHandler(partOne, partTwo)
+    } else {
+      this.log.warn('Invalid request: %s', request.url)
+      response.end('Invalid request')
+    }
+  }.bind(this))
 
-    this.server.listen(this.port, function () {
-      this.log('Listen server: http://%s:%s', ip.address(), this.port)
-    }.bind(this))
-  }
+  this.server.listen(this.port, function () {
+    this.log('Listen server: http://%s:%s', ip.address(), this.port)
+  }.bind(this))
 
-  this.service = new Service.Switch(this.name)
+  this.service = new Service.Window(this.name)
 }
 
-WebSwitch.prototype = {
+WebWindow.prototype = {
 
   identify: function (callback) {
     this.log('Identify requested!')
@@ -89,13 +87,17 @@ WebSwitch.prototype = {
     this._httpRequest(url, '', 'GET', function (error, response, responseBody) {
       if (error) {
         this.log.warn('Error getting status: %s', error.message)
-        this.service.getCharacteristic(Characteristic.On).updateValue(new Error('Polling failed'))
+        this.service.getCharacteristic(Characteristic.PositionState).updateValue(new Error('Polling failed'))
         callback(error)
       } else {
         this.log.debug('Device response: %s', responseBody)
         var json = JSON.parse(responseBody)
-        this.service.getCharacteristic(Characteristic.On).updateValue(json.currentState)
-        this.log('Updated state to: %s', json.currentState)
+        this.service.getCharacteristic(Characteristic.PositionState).updateValue(json.positionState)
+        this.log('Updated positionState to: %s', json.positionState)
+        this.service.getCharacteristic(Characteristic.CurrentPosition).updateValue(json.currentPosition)
+        this.log('Updated currentPosition to: %s', json.currentPosition)
+        this.service.getCharacteristic(Characteristic.TargetPosition).updateValue(json.targetPosition)
+        this.log('Updated targetPosition to: %s', json.targetPosition)
         callback()
       }
     }.bind(this))
@@ -103,8 +105,16 @@ WebSwitch.prototype = {
 
   _httpHandler: function (characteristic, value) {
     switch (characteristic) {
-      case 'state':
-        this.service.getCharacteristic(Characteristic.On).updateValue(value)
+      case 'positionState':
+        this.service.getCharacteristic(Characteristic.PositionState).updateValue(value)
+        this.log('Updated %s to: %s', characteristic, value)
+        break
+      case 'currentPosition':
+        this.service.getCharacteristic(Characteristic.CurrentPosition).updateValue(value)
+        this.log('Updated %s to: %s', characteristic, value)
+        break
+      case 'targetPosition':
+        this.service.getCharacteristic(Characteristic.TargetPosition).updateValue(value)
         this.log('Updated %s to: %s', characteristic, value)
         break
       default:
@@ -112,7 +122,7 @@ WebSwitch.prototype = {
     }
   },
 
-  setOn: function (value, callback) {
+  setTargetPosition: function (value, callback) {
     var url = this.apiroute + '/setState/' + value
     this.log.debug('Setting state: %s', url)
 
@@ -136,8 +146,8 @@ WebSwitch.prototype = {
       .setCharacteristic(Characteristic.FirmwareRevision, this.firmware)
 
     this.service
-      .getCharacteristic(Characteristic.On)
-      .on('set', this.setOn.bind(this))
+      .getCharacteristic(Characteristic.TargetPosition)
+      .on('set', this.setTargetPosition.bind(this))
 
     this._getStatus(function () {})
 

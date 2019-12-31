@@ -17,9 +17,11 @@ function WebWindow (log, config) {
   this.apiroute = config.apiroute
   this.pollInterval = config.pollInterval || 300
 
-  this.listener = config.listener || false
   this.port = config.port || 2000
   this.requestArray = ['currentPosition', 'targetPosition', 'positionState']
+
+  this.autoReset = config.autoReset || false
+  this.autoResetDelay = config.autoResetDelay || 5
 
   this.manufacturer = config.manufacturer || packageJson.author.name
   this.serial = config.serial || this.apiroute
@@ -117,6 +119,13 @@ WebWindow.prototype = {
         this.service.getCharacteristic(Characteristic.TargetPosition).updateValue(value)
         this.log('Updated %s to: %s', characteristic, value)
         break
+      case 'obstructionDetected':
+        this.service.getCharacteristic(Characteristic.ObstructionDetected).updateValue(value)
+        this.log('Updated %s to: %s', characteristic, value)
+        if (parseInt(value) === 1 && this.autoReset) {
+          this.autoResetFunction()
+        }
+        break
       default:
         this.log.warn('Unknown characteristic "%s" with value "%s"', characteristic, value)
     }
@@ -135,6 +144,14 @@ WebWindow.prototype = {
         callback()
       }
     }.bind(this))
+  },
+
+  autoResetFunction: function () {
+    this.log('Waiting %s seconds to autoreset obstruction detection', this.autoResetDelay)
+    setTimeout(() => {
+      this.service.getCharacteristic(Characteristic.ObstructionDetected).updateValue(0)
+      this.log('Autoreset obstruction detection')
+    }, this.autoResetDelay * 1000)
   },
 
   getServices: function () {

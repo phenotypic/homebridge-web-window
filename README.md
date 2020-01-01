@@ -95,4 +95,4 @@ Your API should be able to:
 | --- | --- |
 | `0` | Opening |
 | `1` | Closing |
-| `2` | Open/Closed |
+| `2` | Stationary |

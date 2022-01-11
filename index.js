@@ -92,14 +92,18 @@ WebWindow.prototype = {
         callback(error)
       } else {
         this.log.debug('Device response: %s', responseBody)
-        var json = JSON.parse(responseBody)
-        this.service.getCharacteristic(Characteristic.PositionState).updateValue(json.positionState)
-        this.log.debug('Updated positionState to: %s', json.positionState)
-        this.service.getCharacteristic(Characteristic.CurrentPosition).updateValue(json.currentPosition)
-        this.log.debug('Updated currentPosition to: %s', json.currentPosition)
-        this.service.getCharacteristic(Characteristic.TargetPosition).updateValue(json.targetPosition)
-        this.log.debug('Updated targetPosition to: %s', json.targetPosition)
-        callback()
+        try {
+          var json = JSON.parse(responseBody)
+          this.service.getCharacteristic(Characteristic.PositionState).updateValue(json.positionState)
+          this.log.debug('Updated positionState to: %s', json.positionState)
+          this.service.getCharacteristic(Characteristic.CurrentPosition).updateValue(json.currentPosition)
+          this.log.debug('Updated currentPosition to: %s', json.currentPosition)
+          this.service.getCharacteristic(Characteristic.TargetPosition).updateValue(json.targetPosition)
+          this.log.debug('Updated targetPosition to: %s', json.targetPosition)
+          callback()
+        } catch (e) {
+          this.log.warn('Error parsing status: %s', e.message)
+        }
       }
     }.bind(this))
   },
